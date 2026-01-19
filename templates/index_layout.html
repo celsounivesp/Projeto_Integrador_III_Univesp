@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Trajeto Inclusivo</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/contact.css') }}">
+</head>
+<body data-tts="{{ tts_url }}">
+  <main class="wrap">
+    <header class="logos" aria-label="instituições parceiras">
+      <img src="{{ url_for('static', filename='img/logo_univesp.png') }}" alt="UNIVESP" />
+      <img src="{{ url_for('static', filename='img/brasao_piracicaba.png') }}" alt="Piracicaba" />
+      <img src="{{ url_for('static', filename='img/simbolo_pcd.png') }}" alt="Acessibilidade" />
+      <img src="{{ url_for('static', filename='img/logo_tupi.png') }}" alt="TUPi Transportes" />
+    </header>
+
+    <section class="center" id="telaMic">
+      <h1 class="title">Trajeto Inclusivo</h1>
+
+      <form method="post" action="{{ url_for('buscar') }}" id="formVoz">
+        
+        <button type="button" id="btnMic" class="mic-btn" aria-label="Toque e fale seu destino">
+          <img src="{{ url_for('static', filename='img/mic_icon.png') }}" alt="" />
+        </button>
+        
+        <input type="text" id="iosDict" class="ios-dictation" style="display:none;" placeholder="Digite seu destino.">
+        
+        <div id="iosControls" style="display:none; margin-top: 15px;">
+            <button type="submit" class="btn-ios">Buscar</button>
+        </div>
+      </form>
+    </section>
+
+    <section id="resultsContainer" class="results-container">
+    </section>
+    
+    <div class="footer-spacer"></div>
+    <footer class="rodape" style="color:#FFFFFF !important;">
+      <p>GRUPO UNIVESP - PROJETO INTEGRADOR II - 2025</p>
+      <p>DRP04-PJI/240</p>
+    </footer>
+
+    <button id="btn-contact" class="contact-fab" aria-label="Abrir contato e ajuda">
+      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+        <path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/>
+      </svg>
+    </button>
+
+    
+<div id="modal-contato" class="modal-backdrop" role="dialog" aria-hidden="true" aria-labelledby="tituloContato">
+      <div class="modal-card" role="document">
+        
+        <div class="modal-header-blue">
+          <h3 id="tituloContato">Contato — Trajeto Inclusivo</h3>
+        </div>
+
+        <div class="modal-content-white">
+            <p class="contact-modal-intro">
+              <strong>Envie uma sugestão, dúvida ou <br>problema encontrado na plataforma.</strong>
+            </p>
+            <p class="contact-modal-intro-small">
+              Esta ferramenta faz parte do Projeto Integrador II da UNIVESP.
+            </p>
+
+            <p class="contact-modal-attention">
+              <strong>Atenção:</strong> Este formulário não é atendimento da empresa de ônibus e nem intermediamos contato.
+            </p>
+
+            <form id="contact-request-form" action="https://formspree.io/f/manaqjkn" method="POST" autocomplete="off">
+                
+                <div class="form-field-group">
+                    <div class="form-line">
+                        <label for="contactName">Nome *</label>
+                        <input id="contactName" name="name" type="text" placeholder="Seu nome" aria-required="true"/>
+                    </div>
+                </div>
+
+                <div class="form-field-group">
+                    <div class="contact-phone-group">
+                        <div class="contact-ddd-field">
+                            <label for="contactDDD">DDD *</label>
+                            <input id="contactDDD" name="ddd" type="tel" inputmode="numeric" maxlength="2" placeholder="19" aria-required="true"/>
+                        </div>
+                        <div class="contact-phone-field">
+                            <label for="contactPhone">Telefone *</label>
+                            <input id="contactPhone" name="phone" type="tel" inputmode="numeric" maxlength="9" placeholder="912345678" aria-required="true"/>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="form-field-group">
+                    <div class="form-line">
+                        <label for="contactEmail">E-mail *</label>
+                        <input id="contactEmail" name="email" type="email" placeholder="seu@email.com" aria-required="true"/>
+                    </div>
+                </div>
+                
+                <div class="form-field-group">
+                    <label for="contactMessage">Mensagem *</label>
+                    <textarea id="contactMessage" name="message" maxlength="500" rows="4" placeholder="Escreva sua mensagem (até 500 caracteres)" aria-required="true"></textarea>
+                </div>
+
+              <div id="msgCount" class="contact-char-count">0 / 500 caracteres</div>
+              
+              <div class="contact-modal-actions">
+                <button type="submit" class="btn">Enviar</button> 
+                <button type="button" id="btn-close-modal" class="btn btn-secondary">Cancelar</button>
+              </div>
+            </form>
+
+            <div id="contact-form-result" role="status" aria-live="polite"></div>
+        </div>
+      </div>
+    </div>
+    </main>
+
+  <audio id="tapSound" src="{{ url_for('static', filename='audio/tap_confirm.wav') }}" preload="auto"></audio>
+  <audio id="ttsPlayer" preload="auto"></audio> 
+  
+  <script src="{{ url_for('static', filename='js/voice_index.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/contact.js') }}"></script>
+  
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      const welcomeUrl = document.body.getAttribute('data-tts');
+      const ttsPlayer = document.getElementById('ttsPlayer');
+      
+      if (welcomeUrl && ttsPlayer) {
+        setTimeout(() => {
+          ttsPlayer.src = welcomeUrl;
+          ttsPlayer.play().catch(error => {
+            console.warn("Autoplay bloqueado pelo navegador.");
+          });
+        }, 2000);
+      }
+    });
+  </script>
+
+  <!-- ========================================================= -->
+  <!--  SCRIPT QUE AJUSTA O TÍTULO (SEGUDA LINHA CENTRALIZADA)   -->
+  <!-- ========================================================= -->
+  <script>
+  document.addEventListener("DOMContentLoaded", function () {
+
+      var block = document.querySelector(".contact-modal-intro strong");
+      if (!block) return;
+      if (block.querySelector(".intro-line-center")) return;
+
+      var html = block.innerHTML;
+
+      if (html.indexOf("<br") !== -1) {
+          var partes = html.split(/<br\s*\/?>/i);
+          var linha1 = partes[0].trim();
+          var linha2 = partes.slice(1).join("<br>").trim();
+
+          block.innerHTML =
+              linha1 +
+              "<br>" +
+              '<span class="intro-line-center">' +
+              linha2 +
+              "</span>";
+      }
+
+      var style = document.createElement("style");
+      style.innerHTML = `
+          .intro-line-center {
+              display: block;
+              text-align: center;
+              width: 100%;
+              margin-top: 4px;
+          }
+      `;
+      document.head.appendChild(style);
+
+  });
+  </script>
+
+</body>
+</html>
